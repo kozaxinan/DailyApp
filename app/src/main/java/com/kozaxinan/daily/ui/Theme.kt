@@ -22,7 +22,7 @@ private val LightColorPalette = lightColorPalette(
   onPrimary = Color.DarkGray,
   onSecondary = Color.DarkGray,
   onBackground = Color.Black,
-  onSurface = Color.DarkGray,
+  onSurface = Color.DarkGray
 )
 
 @Composable

@@ -86,7 +86,7 @@ private fun ItemView(item: Item) {
 
     Text(
       text = "Hello ${item.name}!",
-      style = typography.h1,
+      style = typography.body1,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier.gravity(align = CenterVertically)
