@@ -16,13 +16,13 @@ private val DarkColorPalette = darkColorPalette(
 private val LightColorPalette = lightColorPalette(
   primary = purple500,
   primaryVariant = purple700,
-  secondary = teal200,
-  background = Color.LightGray,
-  surface = Color.White,
-  onPrimary = Color.DarkGray,
-  onSecondary = Color.DarkGray,
-  onBackground = Color.Black,
-  onSurface = Color.DarkGray
+  secondary = teal200
+//  background = Color.LightGray,
+//  surface = Color.White,
+//  onPrimary = Color.DarkGray,
+//  onSecondary = Color.DarkGray,
+//  onBackground = Color.Black,
+//  onSurface = Color.DarkGray
 )
 
 @Composable

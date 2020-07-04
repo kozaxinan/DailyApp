@@ -47,16 +47,13 @@ internal class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContent {
       DailyTheme {
-        mainContent(items.collectAsState())
+        val state = items.collectAsState()
+        if (state.value.isEmpty()) {
+          OnlyAddButton(onClick)
+        } else {
+          ItemList(state)
+        }
       }
-    }
-  }
-
-  private fun mainContent(items: State<List<Item>>) {
-    if (items.value.isEmpty()) {
-      OnlyAddButton(onClick)
-    } else {
-      ItemList(items)
     }
   }
 }
