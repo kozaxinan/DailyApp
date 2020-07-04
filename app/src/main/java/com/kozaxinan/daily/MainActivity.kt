@@ -4,13 +4,13 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
 import androidx.compose.State
-import androidx.compose.StructurallyEqual
-import androidx.compose.mutableStateOf
+import androidx.compose.collectAsState
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
 import androidx.ui.core.clip
 import androidx.ui.core.setContent
+import androidx.ui.foundation.Box
 import androidx.ui.foundation.Image
 import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
@@ -22,37 +22,52 @@ import androidx.ui.layout.padding
 import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
 import androidx.ui.layout.preferredWidthIn
+import androidx.ui.material.Button
 import androidx.ui.res.imageResource
 import androidx.ui.text.style.TextOverflow
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.unit.dp
 import com.kozaxinan.daily.ui.DailyTheme
 import com.kozaxinan.daily.ui.typography
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 
-class MainActivity : AppCompatActivity() {
+@ExperimentalCoroutinesApi
+internal class MainActivity : AppCompatActivity() {
+
+  private val items: MutableStateFlow<List<Item>> = MutableStateFlow(emptyList())
+
+  private val onClick: () -> Unit = {
+    items.value += listOf(
+      Item("One ${System.currentTimeMillis()}", R.drawable.header)
+    )
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
       DailyTheme {
-        Greeting("Android")
-
-        val items = mutableStateOf(
-          listOf(
-            Item("One", R.drawable.header),
-            Item("Two", R.drawable.header),
-            Item("Three", R.drawable.header)
-          ),
-          StructurallyEqual
-        )
-        ItemList(items)
+        mainContent(items.collectAsState())
       }
+    }
+  }
+
+  private fun mainContent(items: State<List<Item>>) {
+    if (items.value.isEmpty()) {
+      OnlyAddButton(onClick)
+    } else {
+      ItemList(items)
     }
   }
 }
 
 @Composable
-fun Greeting(name: String) {
-  Text(text = "Hello $name!")
+fun OnlyAddButton(onClick: () -> Unit) {
+  Box {
+    Button(onClick = onClick) {
+      Text(text = "Add")
+    }
+  }
 }
 
 @Composable
@@ -94,26 +109,10 @@ private fun ItemView(item: Item) {
   }
 }
 
-//@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-  DailyTheme {
-    Greeting("Android")
-  }
-}
-
 @Preview(showBackground = true)
 @Composable
-fun ItemListPreview() {
+fun OnlyAddButtonPreview() {
   DailyTheme {
-    ItemList(
-      mutableStateOf(
-        listOf(
-          Item("One", R.drawable.header),
-          Item("Two", R.drawable.header),
-          Item("Three", R.drawable.header)
-        )
-      )
-    )
+    OnlyAddButton({ })
   }
 }
