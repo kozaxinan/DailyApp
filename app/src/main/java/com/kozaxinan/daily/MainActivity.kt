@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
 import androidx.compose.State
 import androidx.compose.collectAsState
+import androidx.compose.state
+import androidx.ui.core.Alignment.Companion.Center
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
@@ -18,6 +20,7 @@ import androidx.ui.graphics.ImageAsset
 import androidx.ui.layout.Column
 import androidx.ui.layout.Row
 import androidx.ui.layout.Spacer
+import androidx.ui.layout.fillMaxSize
 import androidx.ui.layout.padding
 import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
@@ -60,7 +63,10 @@ internal class MainActivity : AppCompatActivity() {
 
 @Composable
 fun OnlyAddButton(onClick: () -> Unit) {
-  Box {
+  Box(
+    gravity = Center,
+    modifier = Modifier.fillMaxSize()
+  ) {
     Button(onClick = onClick) {
       Text(text = "Add")
     }
@@ -70,7 +76,9 @@ fun OnlyAddButton(onClick: () -> Unit) {
 @Composable
 fun ItemList(items: State<List<Item>>) {
   Column(
-    modifier = Modifier.padding(all = 16.dp)
+    modifier = Modifier
+      .padding(all = 16.dp)
+      .fillMaxSize()
   ) {
     items
       .value
@@ -102,6 +110,20 @@ private fun ItemView(item: Item) {
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier.gravity(align = CenterVertically)
+    )
+  }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ItemsPreview() {
+  DailyTheme {
+    ItemList(
+      state {
+        listOf(
+          Item("One ${System.currentTimeMillis()}", R.drawable.header)
+        )
+      }
     )
   }
 }
