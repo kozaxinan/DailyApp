@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asFlow
 @ExperimentalCoroutinesApi
 internal object TaskRepository {
 
-  private val _channel: ConflatedBroadcastChannel<List<Task>> = ConflatedBroadcastChannel()
+  private val _channel: ConflatedBroadcastChannel<List<Task>> = ConflatedBroadcastChannel(emptyList())
   val tasks: Flow<List<Task>> get() = _channel.asFlow()
 
   suspend fun addTask(task: Task) {

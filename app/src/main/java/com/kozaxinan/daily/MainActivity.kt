@@ -7,14 +7,12 @@ import androidx.compose.State
 import androidx.compose.collectAsState
 import androidx.compose.state
 import androidx.lifecycle.lifecycleScope
-import androidx.ui.core.Alignment.Companion.Center
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
 import androidx.ui.core.clip
 import androidx.ui.core.setContent
 import androidx.ui.core.tag
-import androidx.ui.foundation.Box
 import androidx.ui.foundation.Image
 import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
@@ -24,9 +22,7 @@ import androidx.ui.layout.ConstraintLayout
 import androidx.ui.layout.ConstraintSet2
 import androidx.ui.layout.Row
 import androidx.ui.layout.Spacer
-import androidx.ui.layout.fillMaxHeight
 import androidx.ui.layout.fillMaxSize
-import androidx.ui.layout.fillMaxWidth
 import androidx.ui.layout.padding
 import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
@@ -70,8 +66,13 @@ internal class MainActivity : AppCompatActivity() {
 
 @Composable
 fun OnlyAddButton(onClick: () -> Unit) {
-  Box(
-    gravity = Center,
+  val constraintSet = ConstraintSet2 {
+    constrain(createRefFor(Tag.AddButtonTag)) {
+      centerTo(parent)
+    }
+  }
+  ConstraintLayout(
+    constraintSet = constraintSet,
     modifier = Modifier.fillMaxSize()
   ) {
     AddButton(onClick)
@@ -100,8 +101,7 @@ fun TaskListWithAdd(items: State<List<Task>>, onClick: () -> Unit) {
   }
   ConstraintLayout(
     constraintSet = constraintSet,
-    modifier = Modifier.fillMaxWidth() +
-      Modifier.fillMaxHeight()
+    modifier = Modifier.fillMaxSize()
   ) {
     TaskList(items = items)
     AddButton(onClick)
