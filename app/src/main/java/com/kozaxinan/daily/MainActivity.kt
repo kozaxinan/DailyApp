@@ -13,15 +13,20 @@ import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
 import androidx.ui.core.clip
 import androidx.ui.core.setContent
+import androidx.ui.core.tag
 import androidx.ui.foundation.Box
 import androidx.ui.foundation.Image
 import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
 import androidx.ui.graphics.ImageAsset
 import androidx.ui.layout.Column
+import androidx.ui.layout.ConstraintLayout
+import androidx.ui.layout.ConstraintSet2
 import androidx.ui.layout.Row
 import androidx.ui.layout.Spacer
+import androidx.ui.layout.fillMaxHeight
 import androidx.ui.layout.fillMaxSize
+import androidx.ui.layout.fillMaxWidth
 import androidx.ui.layout.padding
 import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
@@ -56,7 +61,7 @@ internal class MainActivity : AppCompatActivity() {
         if (state.value.isEmpty()) {
           OnlyAddButton(onClick)
         } else {
-          TaskList(state)
+          TaskListWithAdd(state, onClick)
         }
       }
     }
@@ -69,9 +74,37 @@ fun OnlyAddButton(onClick: () -> Unit) {
     gravity = Center,
     modifier = Modifier.fillMaxSize()
   ) {
-    Button(onClick = onClick) {
-      Text(text = "Add")
+    AddButton(onClick)
+  }
+}
+
+@Composable
+private fun AddButton(onClick: () -> Unit) {
+  Button(onClick = onClick, modifier = Modifier.tag(Tag.AddButtonTag)) {
+    Text(text = "Add")
+  }
+}
+
+@Composable
+fun TaskListWithAdd(items: State<List<Task>>, onClick: () -> Unit) {
+  val constraintSet = ConstraintSet2 {
+    constrain(createRefFor(Tag.AddButtonTag)) {
+      end.linkTo(parent.end, 32.dp)
+      bottom.linkTo(parent.bottom, 32.dp)
     }
+
+    constrain(createRefFor(Tag.TaskListTag)) {
+      start.linkTo(parent.start)
+      centerTo(parent)
+    }
+  }
+  ConstraintLayout(
+    constraintSet = constraintSet,
+    modifier = Modifier.fillMaxWidth() +
+      Modifier.fillMaxHeight()
+  ) {
+    TaskList(items = items)
+    AddButton(onClick)
   }
 }
 
@@ -81,6 +114,7 @@ fun TaskList(items: State<List<Task>>) {
     modifier = Modifier
       .padding(all = 16.dp)
       .fillMaxSize()
+      .tag(Tag.TaskListTag)
   ) {
     items
       .value
@@ -136,4 +170,10 @@ fun OnlyAddButtonPreview() {
   DailyTheme {
     OnlyAddButton({ })
   }
+}
+
+sealed class Tag {
+
+  object AddButtonTag: Tag()
+  object TaskListTag: Tag()
 }
