@@ -154,12 +154,13 @@ private fun TaskView(task: Task) {
 @Composable
 fun ItemsPreview() {
   DailyTheme {
-    TaskList(
+    TaskListWithAdd(
       state {
         listOf(
           Task("One ${System.currentTimeMillis()}", R.drawable.header)
         )
-      }
+      },
+      {}
     )
   }
 }
@@ -174,6 +175,6 @@ fun OnlyAddButtonPreview() {
 
 sealed class Tag {
 
-  object AddButtonTag: Tag()
-  object TaskListTag: Tag()
+  object AddButtonTag : Tag()
+  object TaskListTag : Tag()
 }
