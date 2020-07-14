@@ -2,7 +2,7 @@ package com.kozaxinan.daily
 
 import androidx.annotation.DrawableRes
 
-data class Item(
+data class Task(
   val name: String,
   @DrawableRes val imageId: Int
 )

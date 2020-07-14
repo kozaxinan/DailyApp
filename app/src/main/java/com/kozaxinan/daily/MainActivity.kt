@@ -6,6 +6,7 @@ import androidx.compose.Composable
 import androidx.compose.State
 import androidx.compose.collectAsState
 import androidx.compose.state
+import androidx.lifecycle.lifecycleScope
 import androidx.ui.core.Alignment.Companion.Center
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
@@ -33,28 +34,29 @@ import androidx.ui.unit.dp
 import com.kozaxinan.daily.ui.DailyTheme
 import com.kozaxinan.daily.ui.typography
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.launch
 
+@FlowPreview
 @ExperimentalCoroutinesApi
 internal class MainActivity : AppCompatActivity() {
 
-  private val items: MutableStateFlow<List<Item>> = MutableStateFlow(emptyList())
-
   private val onClick: () -> Unit = {
-    items.value += listOf(
-      Item("One ${System.currentTimeMillis()}", R.drawable.header)
-    )
+    lifecycleScope.launch {
+      val task = Task("One ${System.currentTimeMillis()}", R.drawable.header)
+      TaskRepository.addTask(task)
+    }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
       DailyTheme {
-        val state = items.collectAsState()
+        val state = TaskRepository.tasks.collectAsState(initial = emptyList())
         if (state.value.isEmpty()) {
           OnlyAddButton(onClick)
         } else {
-          ItemList(state)
+          TaskList(state)
         }
       }
     }
@@ -74,7 +76,7 @@ fun OnlyAddButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun ItemList(items: State<List<Item>>) {
+fun TaskList(items: State<List<Task>>) {
   Column(
     modifier = Modifier
       .padding(all = 16.dp)
@@ -83,17 +85,17 @@ fun ItemList(items: State<List<Item>>) {
     items
       .value
       .forEach {
-        ItemView(item = it)
+        TaskView(task = it)
       }
   }
 }
 
 @Composable
-private fun ItemView(item: Item) {
+private fun TaskView(task: Task) {
   Row(
     modifier = Modifier.padding(all = 8.dp)
   ) {
-    val image: ImageAsset = imageResource(item.imageId)
+    val image: ImageAsset = imageResource(task.imageId)
 
     val imageModifier = Modifier
       .preferredHeightIn(maxHeight = 32.dp)
@@ -105,7 +107,7 @@ private fun ItemView(item: Item) {
     Spacer(Modifier.preferredWidth(16.dp))
 
     Text(
-      text = "Hello ${item.name}!",
+      text = "Hello ${task.name}!",
       style = typography.body1,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
@@ -118,10 +120,10 @@ private fun ItemView(item: Item) {
 @Composable
 fun ItemsPreview() {
   DailyTheme {
-    ItemList(
+    TaskList(
       state {
         listOf(
-          Item("One ${System.currentTimeMillis()}", R.drawable.header)
+          Task("One ${System.currentTimeMillis()}", R.drawable.header)
         )
       }
     )
