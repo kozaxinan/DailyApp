@@ -1,11 +1,10 @@
 package com.kozaxinan.daily
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
-import androidx.compose.State
 import androidx.compose.collectAsState
-import androidx.compose.state
 import androidx.lifecycle.lifecycleScope
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
@@ -28,12 +27,13 @@ import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
 import androidx.ui.layout.preferredWidthIn
 import androidx.ui.material.Button
+import androidx.ui.material.MaterialTheme
+import androidx.ui.material.Surface
 import androidx.ui.res.imageResource
 import androidx.ui.text.style.TextOverflow
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.unit.dp
 import com.kozaxinan.daily.ui.DailyTheme
-import com.kozaxinan.daily.ui.typography
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
@@ -53,11 +53,14 @@ internal class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContent {
       DailyTheme {
-        val state = TaskRepository.tasks.collectAsState(initial = emptyList())
-        if (state.value.isEmpty()) {
-          OnlyAddButton(onClick)
-        } else {
-          TaskListWithAdd(state, onClick)
+        Surface {
+          val state = TaskRepository.tasks.collectAsState(initial = emptyList())
+          val items = state.value
+          if (items.isEmpty()) {
+            OnlyAddButton(onClick)
+          } else {
+            TaskListWithAdd(items, onClick)
+          }
         }
       }
     }
@@ -65,7 +68,7 @@ internal class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-fun OnlyAddButton(onClick: () -> Unit) {
+fun OnlyAddButton(onClick: () -> Unit = {}) {
   val constraintSet = ConstraintSet2 {
     constrain(createRefFor(Tag.AddButtonTag)) {
       centerTo(parent)
@@ -87,7 +90,7 @@ private fun AddButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskListWithAdd(items: State<List<Task>>, onClick: () -> Unit) {
+fun TaskListWithAdd(items: List<Task>, onClick: () -> Unit = {}) {
   val constraintSet = ConstraintSet2 {
     constrain(createRefFor(Tag.AddButtonTag)) {
       end.linkTo(parent.end, 32.dp)
@@ -109,18 +112,16 @@ fun TaskListWithAdd(items: State<List<Task>>, onClick: () -> Unit) {
 }
 
 @Composable
-fun TaskList(items: State<List<Task>>) {
+fun TaskList(items: List<Task>) {
   Column(
     modifier = Modifier
       .padding(all = 16.dp)
       .fillMaxSize()
       .tag(Tag.TaskListTag)
   ) {
-    items
-      .value
-      .forEach {
-        TaskView(task = it)
-      }
+    items.forEach {
+      TaskView(task = it)
+    }
   }
 }
 
@@ -142,34 +143,32 @@ private fun TaskView(task: Task) {
 
     Text(
       text = "Hello ${task.name}!",
-      style = typography.body1,
+      style = MaterialTheme.typography.body1,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
+      color = MaterialTheme.colors.onSurface,
       modifier = Modifier.gravity(align = CenterVertically)
     )
   }
 }
 
-@Preview(showBackground = true)
+@Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
 fun ItemsPreview() {
   DailyTheme {
     TaskListWithAdd(
-      state {
-        listOf(
-          Task("One ${System.currentTimeMillis()}", R.drawable.header)
-        )
-      },
-      {}
+      listOf(
+        Task("One ${System.currentTimeMillis()}", R.drawable.header)
+      )
     )
   }
 }
 
-@Preview(showBackground = true)
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun OnlyAddButtonPreview() {
   DailyTheme {
-    OnlyAddButton({ })
+    OnlyAddButton()
   }
 }
 
