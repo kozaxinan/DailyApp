@@ -21,10 +21,10 @@ import androidx.ui.layout.ConstraintSet2
 import androidx.ui.layout.Row
 import androidx.ui.layout.Spacer
 import androidx.ui.layout.fillMaxSize
+import androidx.ui.layout.height
 import androidx.ui.layout.padding
-import androidx.ui.layout.preferredHeightIn
 import androidx.ui.layout.preferredWidth
-import androidx.ui.layout.preferredWidthIn
+import androidx.ui.layout.width
 import androidx.ui.material.Button
 import androidx.ui.material.MaterialTheme
 import androidx.ui.material.Surface
@@ -73,10 +73,7 @@ fun OnlyAddButton(onClick: () -> Unit = {}) {
       centerTo(parent)
     }
   }
-  ConstraintLayout(
-    constraintSet = constraintSet,
-    modifier = Modifier.fillMaxSize()
-  ) {
+  ConstraintLayout(constraintSet = constraintSet) {
     AddButton(onClick)
   }
 }
@@ -91,14 +88,19 @@ private fun AddButton(onClick: () -> Unit) {
 @Composable
 fun TaskListWithAdd(items: List<Task>, onClick: () -> Unit = {}) {
   val constraintSet = ConstraintSet2 {
-    constrain(createRefFor(Tag.AddButtonTag)) {
-      end.linkTo(parent.end, 32.dp)
-      bottom.linkTo(parent.bottom, 32.dp)
+    val addButtonRef = createRefFor(Tag.AddButtonTag)
+    constrain(addButtonRef) {
+      start.linkTo(parent.start)
+      end.linkTo(parent.end)
+      bottom.linkTo(parent.bottom)
     }
 
-    constrain(createRefFor(Tag.TaskListTag)) {
+    val taskListRef = createRefFor(Tag.TaskListTag)
+    constrain(taskListRef) {
       start.linkTo(parent.start)
-      centerTo(parent)
+      end.linkTo(parent.end)
+      top.linkTo(parent.top)
+      bottom.linkTo(addButtonRef.top)
     }
   }
   ConstraintLayout(
@@ -114,7 +116,6 @@ fun TaskListWithAdd(items: List<Task>, onClick: () -> Unit = {}) {
 fun TaskList(items: List<Task>) {
   Column(
     modifier = Modifier
-      .padding(all = 16.dp)
       .fillMaxSize()
       .layoutId(Tag.TaskListTag)
   ) {
@@ -127,13 +128,13 @@ fun TaskList(items: List<Task>) {
 @Composable
 private fun TaskView(task: Task) {
   Row(
-    modifier = Modifier.padding(all = 8.dp)
+    modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
   ) {
     val image: ImageAsset = imageResource(task.imageId)
 
     val imageModifier = Modifier
-      .preferredHeightIn(maxHeight = 32.dp)
-      .preferredWidthIn(maxWidth = 32.dp)
+      .height(32.dp)
+      .width(32.dp)
       .clip(shape = RoundedCornerShape(4.dp))
 
     Image(image, imageModifier, contentScale = ContentScale.Crop)
@@ -151,14 +152,16 @@ private fun TaskView(task: Task) {
   }
 }
 
+val samples: List<Task> = listOf(
+  Task("One ${System.currentTimeMillis()}", R.drawable.header)
+)
+
 @Preview
 @Composable
 fun ItemsPreview() {
   DailyTheme(darkTheme = true) {
     TaskListWithAdd(
-      listOf(
-        Task("One ${System.currentTimeMillis()}", R.drawable.header)
-      )
+      samples
     )
   }
 }
