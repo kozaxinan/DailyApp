@@ -1,6 +1,5 @@
 package com.kozaxinan.daily
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
@@ -10,8 +9,8 @@ import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
 import androidx.ui.core.clip
+import androidx.ui.core.layoutId
 import androidx.ui.core.setContent
-import androidx.ui.core.tag
 import androidx.ui.foundation.Image
 import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
@@ -84,7 +83,7 @@ fun OnlyAddButton(onClick: () -> Unit = {}) {
 
 @Composable
 private fun AddButton(onClick: () -> Unit) {
-  Button(onClick = onClick, modifier = Modifier.tag(Tag.AddButtonTag)) {
+  Button(onClick = onClick, modifier = Modifier.layoutId(Tag.AddButtonTag)) {
     Text(text = "Add")
   }
 }
@@ -117,7 +116,7 @@ fun TaskList(items: List<Task>) {
     modifier = Modifier
       .padding(all = 16.dp)
       .fillMaxSize()
-      .tag(Tag.TaskListTag)
+      .layoutId(Tag.TaskListTag)
   ) {
     items.forEach {
       TaskView(task = it)
@@ -152,10 +151,10 @@ private fun TaskView(task: Task) {
   }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES, showBackground = true)
+@Preview
 @Composable
 fun ItemsPreview() {
-  DailyTheme {
+  DailyTheme(darkTheme = true) {
     TaskListWithAdd(
       listOf(
         Task("One ${System.currentTimeMillis()}", R.drawable.header)
@@ -164,10 +163,10 @@ fun ItemsPreview() {
   }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview
 @Composable
 fun OnlyAddButtonPreview() {
-  DailyTheme {
+  DailyTheme(darkTheme = true) {
     OnlyAddButton()
   }
 }
