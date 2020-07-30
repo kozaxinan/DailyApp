@@ -78,13 +78,13 @@ internal class MainActivity : AppCompatActivity() {
     setContent {
       DailyTheme {
         Surface {
-          val state: State<Set<Task>> = TaskRepository.tasks.collectAsState(initial = emptySet())
-          val items: Set<Task> = state.value
+          val state: State<Map<Long, Task>> = TaskRepository.tasks.collectAsState()
+          val items: Map<Long, Task> = state.value
 
           when (routerState.collectAsState().value) {
             RouterState.Empty -> OnlyAddButton(onNewClick)
             RouterState.Edit -> TaskEditView(selectedTask, onSaveClick)
-            RouterState.List -> TaskListWithAdd(items, onNewClick, onItemClick)
+            RouterState.List -> TaskListWithAdd(items.values.toList(), onNewClick, onItemClick)
           }
         }
       }
@@ -121,8 +121,8 @@ private fun AddButton(onClick: () -> Unit) {
 
 @Composable
 fun TaskListWithAdd(
-  items: Set<Task>,
-  onClick: () -> Unit = {},
+  items: List<Task>,
+  onClick: () -> Unit,
   onItemClick: (Task) -> Unit
 ) {
   val constraintSet = ConstraintSet2 {
@@ -151,7 +151,7 @@ fun TaskListWithAdd(
 }
 
 @Composable
-fun TaskList(items: Set<Task>, onItemClick: (Task) -> Unit) {
+fun TaskList(items: List<Task>, onItemClick: (Task) -> Unit) {
   Column(
     modifier = Modifier
       .weight(1f)
@@ -227,7 +227,7 @@ fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
   }
 }
 
-val samples: Set<Task> = setOf(
+val samples: List<Task> = listOf(
   Task(
     id = 1,
     name = "One ${System.currentTimeMillis()}",
@@ -241,7 +241,8 @@ fun ItemsPreview() {
   DailyTheme(darkTheme = true) {
     TaskListWithAdd(
       samples,
-      onItemClick = {}
+      onItemClick = {},
+      onClick = {}
     )
   }
 }
