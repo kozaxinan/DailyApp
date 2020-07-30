@@ -8,6 +8,7 @@ import androidx.compose.collectAsState
 import androidx.compose.mutableStateOf
 import androidx.compose.remember
 import androidx.lifecycle.lifecycleScope
+import androidx.ui.core.Alignment
 import androidx.ui.core.Alignment.Companion.CenterHorizontally
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
@@ -15,7 +16,6 @@ import androidx.ui.core.Modifier
 import androidx.ui.core.clip
 import androidx.ui.core.focus.ExperimentalFocus
 import androidx.ui.core.focus.FocusModifier
-import androidx.ui.core.focus.FocusRequester
 import androidx.ui.core.layoutId
 import androidx.ui.core.setContent
 import androidx.ui.foundation.Image
@@ -24,6 +24,7 @@ import androidx.ui.foundation.clickable
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
 import androidx.ui.graphics.ImageAsset
 import androidx.ui.layout.Column
+import androidx.ui.layout.ColumnScope.gravity
 import androidx.ui.layout.ConstraintLayout
 import androidx.ui.layout.ConstraintSet2
 import androidx.ui.layout.Row
@@ -207,39 +208,58 @@ fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
     val (error, setError) = remember { mutableStateOf(false) }
     val (text, setText) = remember { mutableStateOf(task?.name ?: "") }
     val focusModifier = FocusModifier()
-    OutlinedTextField(
-      value = text,
-      onValueChange = { newText: String ->
-        setText(newText)
-        setError(newText.isBlank())
-      },
-      label = { Text(text = "What is the task?") },
-      modifier = Modifier
-        .fillMaxWidth() +
-        focusModifier,
-      isErrorValue = error
-    )
+    val onValueChange = { newText: String ->
+      setText(newText)
+      setError(newText.isBlank())
+    }
 
-    Button(
-      onClick = {
-        val value: String = text
-        if (value.isEmpty()) {
-          focusModifier.requestFocus()
-          setError(true)
-        } else {
-          val id: Long = task?.id ?: UUID.randomUUID().mostSignificantBits
-          onSaveClick(Task(id, value, R.drawable.header))
-        }
-      },
-      modifier = Modifier
-        .gravity(CenterHorizontally)
-        .padding(16.dp)
-    ) {
-      if (task == null) {
-        Text(text = "Create")
+    TaskEditText(text, onValueChange, focusModifier, error)
+
+    val onSaveClick = {
+      val value: String = text
+      if (value.isEmpty()) {
+        focusModifier.requestFocus()
+        setError(true)
       } else {
-        Text(text = "Apply")
+        val id: Long = task?.id ?: UUID.randomUUID().mostSignificantBits
+        onSaveClick(Task(id, value, R.drawable.header))
       }
+    }
+
+    SaveButton(onSaveClick, CenterHorizontally, task)
+  }
+}
+
+@Composable
+private fun TaskEditText(
+  text: String,
+  onValueChange: (String) -> Unit,
+  focusModifier: FocusModifier,
+  error: Boolean
+) {
+  OutlinedTextField(
+    value = text,
+    onValueChange = onValueChange,
+    label = { Text(text = "What is the task?") },
+    modifier = Modifier
+      .fillMaxWidth() +
+      focusModifier,
+    isErrorValue = error
+  )
+}
+
+@Composable
+private fun SaveButton(onSaveClick: () -> Unit, CenterHorizontally: Alignment.Horizontal, task: Task?) {
+  Button(
+    onClick = onSaveClick,
+    modifier = Modifier.Companion
+      .gravity(CenterHorizontally)
+      .padding(16.dp)
+  ) {
+    if (task == null) {
+      Text(text = "Create")
+    } else {
+      Text(text = "Apply")
     }
   }
 }
