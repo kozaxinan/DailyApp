@@ -3,7 +3,6 @@ package com.kozaxinan.daily
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
-import androidx.compose.MutableState
 import androidx.compose.State
 import androidx.compose.collectAsState
 import androidx.compose.mutableStateOf
@@ -14,6 +13,9 @@ import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
 import androidx.ui.core.clip
+import androidx.ui.core.focus.ExperimentalFocus
+import androidx.ui.core.focus.FocusModifier
+import androidx.ui.core.focus.FocusRequester
 import androidx.ui.core.layoutId
 import androidx.ui.core.setContent
 import androidx.ui.foundation.Image
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+@ExperimentalFocus
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class MainActivity : AppCompatActivity() {
@@ -195,24 +198,38 @@ private fun TaskView(task: Task, onItemClick: (Task) -> Unit) {
   }
 }
 
+@ExperimentalFocus
 @Composable
 fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
   Column(
     modifier = Modifier.padding(16.dp)
   ) {
-    val text: MutableState<String> = remember { mutableStateOf(task?.name ?: "") }
+    val (error, setError) = remember { mutableStateOf(false) }
+    val (text, setText) = remember { mutableStateOf(task?.name ?: "") }
+    val focusModifier = FocusModifier()
     OutlinedTextField(
-      value = text.value,
-      onValueChange = { newText: String -> text.value = newText },
+      value = text,
+      onValueChange = { newText: String ->
+        setText(newText)
+        setError(newText.isBlank())
+      },
       label = { Text(text = "What is the task?") },
-      modifier = Modifier.fillMaxWidth()
+      modifier = Modifier
+        .fillMaxWidth() +
+        focusModifier,
+      isErrorValue = error
     )
 
     Button(
       onClick = {
-        val value: String = text.value
-        val id: Long = task?.id ?: UUID.randomUUID().mostSignificantBits
-        onSaveClick(Task(id, value, R.drawable.header))
+        val value: String = text
+        if (value.isEmpty()) {
+          focusModifier.requestFocus()
+          setError(true)
+        } else {
+          val id: Long = task?.id ?: UUID.randomUUID().mostSignificantBits
+          onSaveClick(Task(id, value, R.drawable.header))
+        }
       },
       modifier = Modifier
         .gravity(CenterHorizontally)
@@ -247,16 +264,17 @@ fun ItemsPreview() {
   }
 }
 
-//@Preview
-//@Composable
-//fun TaskEditViewPreview() {
-//  DailyTheme(darkTheme = true) {
-//    TaskEditView(
-//      samples.first(),
-//      {}
-//    )
-//  }
-//}
+@ExperimentalFocus
+@Preview
+@Composable
+fun TaskEditViewPreview() {
+  DailyTheme(darkTheme = true) {
+    TaskEditView(
+      samples.first(),
+      {}
+    )
+  }
+}
 
 //@Preview
 //@Composable
