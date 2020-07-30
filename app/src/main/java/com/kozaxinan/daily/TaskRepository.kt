@@ -10,14 +10,18 @@ import kotlinx.coroutines.flow.asFlow
 @ExperimentalCoroutinesApi
 internal object TaskRepository {
 
-  private val _channel: ConflatedBroadcastChannel<List<Task>> = ConflatedBroadcastChannel(emptyList())
-  val tasks: Flow<List<Task>> get() = _channel.asFlow()
+  private val _channel: ConflatedBroadcastChannel<HashSet<Task>> = ConflatedBroadcastChannel(HashSet())
+  val tasks: Flow<HashSet<Task>> get() = _channel.asFlow()
 
   suspend fun addTask(task: Task) {
-    _channel.send(_channel.value + task)
+    val values = _channel.value
+    values.add(task)
+    _channel.send(values)
   }
 
   suspend fun deleteTask(task: Task) {
-    _channel.send(_channel.value - task)
+    val values = _channel.value
+    values.remove(task)
+    _channel.send(values)
   }
 }

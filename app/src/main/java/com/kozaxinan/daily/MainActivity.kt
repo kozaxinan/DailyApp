@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
 import androidx.compose.MutableState
+import androidx.compose.State
 import androidx.compose.collectAsState
 import androidx.compose.mutableStateOf
+import androidx.compose.remember
 import androidx.lifecycle.lifecycleScope
+import androidx.ui.core.Alignment.Companion.CenterHorizontally
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
@@ -22,8 +25,10 @@ import androidx.ui.layout.Column
 import androidx.ui.layout.ConstraintLayout
 import androidx.ui.layout.ConstraintSet2
 import androidx.ui.layout.Row
+import androidx.ui.layout.RowScope.weight
 import androidx.ui.layout.Spacer
 import androidx.ui.layout.fillMaxSize
+import androidx.ui.layout.fillMaxWidth
 import androidx.ui.layout.height
 import androidx.ui.layout.padding
 import androidx.ui.layout.preferredWidth
@@ -39,28 +44,31 @@ import androidx.ui.unit.dp
 import com.kozaxinan.daily.ui.DailyTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class MainActivity : AppCompatActivity() {
 
-  private var routerState: RouterState = RouterState.Empty
+  private var routerState: MutableStateFlow<RouterState> = MutableStateFlow(RouterState.Empty)
 
-  private val onAddClick: () -> Unit = {
+  private val onNewClick: () -> Unit = {
     selectedTask = null
-    routerState = RouterState.Edit
+    routerState.value = RouterState.Edit
   }
 
-  private val onApplyClick: (Task) -> Unit = {
+  private val onSaveClick: (Task) -> Unit = {
     lifecycleScope.launch {
       TaskRepository.addTask(it)
+      routerState.value = RouterState.List
     }
   }
 
   private val onItemClick: (Task) -> Unit = {
     selectedTask = it
-    routerState = RouterState.Edit
+    routerState.value = RouterState.Edit
   }
 
   private var selectedTask: Task? = null
@@ -70,13 +78,13 @@ internal class MainActivity : AppCompatActivity() {
     setContent {
       DailyTheme {
         Surface {
-          val state = TaskRepository.tasks.collectAsState(initial = emptyList())
-          val items = state.value
+          val state: State<Set<Task>> = TaskRepository.tasks.collectAsState(initial = emptySet())
+          val items: Set<Task> = state.value
 
-          val a = when (routerState) {
-            RouterState.Empty -> OnlyAddButton(onAddClick)
-            RouterState.Edit -> TaskEditView(selectedTask, onApplyClick)
-            RouterState.List -> TaskListWithAdd(items, onAddClick, onItemClick)
+          when (routerState.collectAsState().value) {
+            RouterState.Empty -> OnlyAddButton(onNewClick)
+            RouterState.Edit -> TaskEditView(selectedTask, onSaveClick)
+            RouterState.List -> TaskListWithAdd(items, onNewClick, onItemClick)
           }
         }
       }
@@ -85,27 +93,35 @@ internal class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-fun OnlyAddButton(onClick: () -> Unit = {}) {
+fun OnlyAddButton(onClick: () -> Unit) {
   val constraintSet = ConstraintSet2 {
     constrain(createRefFor(Tag.AddButtonTag)) {
       centerTo(parent)
     }
   }
-  ConstraintLayout(constraintSet = constraintSet) {
+  ConstraintLayout(
+    constraintSet = constraintSet,
+    modifier = Modifier.fillMaxSize()
+  ) {
     AddButton(onClick)
   }
 }
 
 @Composable
 private fun AddButton(onClick: () -> Unit) {
-  Button(onClick = onClick, modifier = Modifier.layoutId(Tag.AddButtonTag)) {
+  Button(
+    onClick = onClick,
+    modifier = Modifier
+      .layoutId(Tag.AddButtonTag)
+      .padding(16.dp)
+  ) {
     Text(text = "Add")
   }
 }
 
 @Composable
 fun TaskListWithAdd(
-  items: List<Task>,
+  items: Set<Task>,
   onClick: () -> Unit = {},
   onItemClick: (Task) -> Unit
 ) {
@@ -135,10 +151,12 @@ fun TaskListWithAdd(
 }
 
 @Composable
-fun TaskList(items: List<Task>, onItemClick: (Task) -> Unit) {
+fun TaskList(items: Set<Task>, onItemClick: (Task) -> Unit) {
   Column(
     modifier = Modifier
-      .fillMaxSize()
+      .weight(1f)
+      .fillMaxWidth()
+      .padding(16.dp)
       .layoutId(Tag.TaskListTag)
   ) {
     items.forEach {
@@ -152,6 +170,7 @@ private fun TaskView(task: Task, onItemClick: (Task) -> Unit) {
   Row(
     modifier = Modifier
       .padding(vertical = 8.dp, horizontal = 16.dp)
+      .fillMaxWidth()
       .clickable(onClick = { onItemClick(task) })
   ) {
     val image: ImageAsset = imageResource(task.imageId)
@@ -166,7 +185,7 @@ private fun TaskView(task: Task, onItemClick: (Task) -> Unit) {
     Spacer(Modifier.preferredWidth(16.dp))
 
     Text(
-      text = "Hello ${task.name}!",
+      text = task.name,
       style = MaterialTheme.typography.body1,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
@@ -177,26 +196,43 @@ private fun TaskView(task: Task, onItemClick: (Task) -> Unit) {
 }
 
 @Composable
-fun TaskEditView(task: Task? = null, onApplyClick: (Task) -> Unit) {
-  val text: MutableState<String> = mutableStateOf(task?.name ?: "")
-  OutlinedTextField(
-    value = text.value,
-    onValueChange = { newText: String -> text.value = newText }
+fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
+  Column(
+    modifier = Modifier.padding(16.dp)
   ) {
-    Text(text = "What is the task?")
-  }
+    val text: MutableState<String> = remember { mutableStateOf(task?.name ?: "") }
+    OutlinedTextField(
+      value = text.value,
+      onValueChange = { newText: String -> text.value = newText },
+      label = { Text(text = "What is the task?") },
+      modifier = Modifier.fillMaxWidth()
+    )
 
-  Button(onClick = { onApplyClick(Task(text.value, R.drawable.header)) }) {
-    if (task == null) {
-      Text(text = "Apply")
-    } else {
-      Text(text = "Create")
+    Button(
+      onClick = {
+        val value: String = text.value
+        val id: Long = task?.id ?: UUID.randomUUID().mostSignificantBits
+        onSaveClick(Task(id, value, R.drawable.header))
+      },
+      modifier = Modifier
+        .gravity(CenterHorizontally)
+        .padding(16.dp)
+    ) {
+      if (task == null) {
+        Text(text = "Create")
+      } else {
+        Text(text = "Apply")
+      }
     }
   }
 }
 
-val samples: List<Task> = listOf(
-  Task("One ${System.currentTimeMillis()}", R.drawable.header)
+val samples: Set<Task> = setOf(
+  Task(
+    id = 1,
+    name = "One ${System.currentTimeMillis()}",
+    imageId = R.drawable.header
+  )
 )
 
 @Preview
@@ -205,29 +241,29 @@ fun ItemsPreview() {
   DailyTheme(darkTheme = true) {
     TaskListWithAdd(
       samples,
-      onItemClick = onItemClick
+      onItemClick = {}
     )
   }
 }
 
-@Preview
-@Composable
-fun TaskEditViewPreview() {
-  DailyTheme(darkTheme = true) {
-    TaskEditView(
-      samples[0],
-      onApplyClick
-    )
-  }
-}
+//@Preview
+//@Composable
+//fun TaskEditViewPreview() {
+//  DailyTheme(darkTheme = true) {
+//    TaskEditView(
+//      samples.first(),
+//      {}
+//    )
+//  }
+//}
 
-@Preview
-@Composable
-fun OnlyAddButtonPreview() {
-  DailyTheme(darkTheme = true) {
-    OnlyAddButton()
-  }
-}
+//@Preview
+//@Composable
+//fun OnlyAddButtonPreview() {
+//  DailyTheme(darkTheme = true) {
+//    OnlyAddButton {}
+//  }
+//}
 
 sealed class Tag {
 
