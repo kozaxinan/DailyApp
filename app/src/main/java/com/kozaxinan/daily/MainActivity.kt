@@ -1,6 +1,5 @@
 package com.kozaxinan.daily
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
@@ -11,40 +10,25 @@ import androidx.compose.remember
 import androidx.lifecycle.lifecycleScope
 import androidx.ui.animation.Crossfade
 import androidx.ui.core.Alignment.Companion.CenterHorizontally
-import androidx.ui.core.Alignment.Companion.CenterVertically
-import androidx.ui.core.ContentScale
 import androidx.ui.core.Modifier
-import androidx.ui.core.clip
 import androidx.ui.core.focus.ExperimentalFocus
 import androidx.ui.core.focus.FocusModifier
 import androidx.ui.core.layoutId
 import androidx.ui.core.setContent
-import androidx.ui.foundation.Image
 import androidx.ui.foundation.Text
-import androidx.ui.foundation.clickable
-import androidx.ui.foundation.shape.corner.RoundedCornerShape
-import androidx.ui.graphics.ImageAsset
 import androidx.ui.layout.Column
 import androidx.ui.layout.ColumnScope.gravity
 import androidx.ui.layout.ConstraintLayout
 import androidx.ui.layout.ConstraintSet2
-import androidx.ui.layout.Row
-import androidx.ui.layout.RowScope.weight
-import androidx.ui.layout.Spacer
 import androidx.ui.layout.fillMaxSize
 import androidx.ui.layout.fillMaxWidth
-import androidx.ui.layout.height
 import androidx.ui.layout.padding
-import androidx.ui.layout.preferredWidth
-import androidx.ui.layout.width
 import androidx.ui.material.Button
-import androidx.ui.material.MaterialTheme
 import androidx.ui.material.OutlinedTextField
 import androidx.ui.material.Surface
-import androidx.ui.res.imageResource
-import androidx.ui.text.style.TextOverflow
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.unit.dp
+import com.kozaxinan.daily.dashboard.TaskList
 import com.kozaxinan.daily.ui.DailyTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -97,8 +81,6 @@ internal class MainActivity : AppCompatActivity() {
         }
       }
     }
-
-    startActivity(Intent(this, DailyActivity::class.java))
   }
 }
 
@@ -157,51 +139,6 @@ fun TaskListWithAdd(
   ) {
     TaskList(items = items, onItemClick = onItemClick)
     AddButton(onClick)
-  }
-}
-
-@Composable
-fun TaskList(items: List<Task>, onItemClick: (Task) -> Unit) {
-  Column(
-    modifier = Modifier
-      .weight(1f)
-      .fillMaxWidth()
-      .padding(16.dp)
-      .layoutId(Tag.TaskListTag)
-  ) {
-    items.forEach {
-      TaskView(task = it, onItemClick = onItemClick)
-    }
-  }
-}
-
-@Composable
-private fun TaskView(task: Task, onItemClick: (Task) -> Unit) {
-  Row(
-    modifier = Modifier
-      .padding(vertical = 8.dp, horizontal = 16.dp)
-      .fillMaxWidth()
-      .clickable(onClick = { onItemClick(task) })
-  ) {
-    val image: ImageAsset = imageResource(task.imageId)
-
-    val imageModifier = Modifier
-      .height(32.dp)
-      .width(32.dp)
-      .clip(shape = RoundedCornerShape(4.dp))
-
-    Image(image, imageModifier, contentScale = ContentScale.Crop)
-
-    Spacer(Modifier.preferredWidth(16.dp))
-
-    Text(
-      text = task.name,
-      style = MaterialTheme.typography.body1,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
-      color = MaterialTheme.colors.onSurface,
-      modifier = Modifier.gravity(align = CenterVertically)
-    )
   }
 }
 
