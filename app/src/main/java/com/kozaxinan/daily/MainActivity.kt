@@ -8,7 +8,6 @@ import androidx.compose.collectAsState
 import androidx.compose.mutableStateOf
 import androidx.compose.remember
 import androidx.lifecycle.lifecycleScope
-import androidx.ui.core.Alignment
 import androidx.ui.core.Alignment.Companion.CenterHorizontally
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
@@ -81,7 +80,7 @@ internal class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContent {
       DailyTheme {
-        Surface {
+        Surface(modifier = Modifier.fillMaxSize()) {
           val state: State<Map<Long, Task>> = TaskRepository.tasks.collectAsState()
           val items: Map<Long, Task> = state.value
 
@@ -206,17 +205,17 @@ fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
     modifier = Modifier.padding(16.dp)
   ) {
     val (error, setError) = remember { mutableStateOf(false) }
-    val (text, setText) = remember { mutableStateOf(task?.name ?: "") }
+    val (taskName, setTaskName) = remember { mutableStateOf(task?.name ?: "") }
     val focusModifier = FocusModifier()
-    val onValueChange = { newText: String ->
-      setText(newText)
-      setError(newText.isBlank())
+    val onValueChange = { newTaskName: String ->
+      setTaskName(newTaskName)
+      setError(newTaskName.isBlank())
     }
 
-    TaskEditText(text, onValueChange, focusModifier, error)
+    TaskEditText(taskName, onValueChange, focusModifier, error)
 
-    val onSaveClick = {
-      val value: String = text
+    val onSave: () -> Unit = {
+      val value: String = taskName
       if (value.isEmpty()) {
         focusModifier.requestFocus()
         setError(true)
@@ -226,7 +225,8 @@ fun TaskEditView(task: Task? = null, onSaveClick: (Task) -> Unit) {
       }
     }
 
-    SaveButton(onSaveClick, CenterHorizontally, task)
+    val saveButtonText: String = if (task == null) "Create" else "Apply"
+    HorizontalButton(onSave, saveButtonText)
   }
 }
 
@@ -249,18 +249,14 @@ private fun TaskEditText(
 }
 
 @Composable
-private fun SaveButton(onSaveClick: () -> Unit, CenterHorizontally: Alignment.Horizontal, task: Task?) {
+private fun HorizontalButton(onSaveClick: () -> Unit, text: String) {
   Button(
     onClick = onSaveClick,
     modifier = Modifier.Companion
       .gravity(CenterHorizontally)
       .padding(16.dp)
   ) {
-    if (task == null) {
-      Text(text = "Create")
-    } else {
-      Text(text = "Apply")
-    }
+    Text(text = text)
   }
 }
 
