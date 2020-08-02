@@ -8,6 +8,7 @@ import androidx.compose.collectAsState
 import androidx.compose.mutableStateOf
 import androidx.compose.remember
 import androidx.lifecycle.lifecycleScope
+import androidx.ui.animation.Crossfade
 import androidx.ui.core.Alignment.Companion.CenterHorizontally
 import androidx.ui.core.Alignment.Companion.CenterVertically
 import androidx.ui.core.ContentScale
@@ -84,11 +85,14 @@ internal class MainActivity : AppCompatActivity() {
           val state: State<Map<Long, Task>> = TaskRepository.tasks.collectAsState()
           val items: Map<Long, Task> = state.value
 
-          when (routerState.collectAsState().value) {
-            RouterState.Empty -> OnlyAddButton(onNewClick)
-            RouterState.Edit -> TaskEditView(selectedTask, onSaveClick)
-            RouterState.List -> TaskListWithAdd(items.values.toList(), onNewClick, onItemClick)
-          }
+          val screen = routerState.collectAsState().value
+          Crossfade(screen) {
+            when (it) {
+              RouterState.Empty -> OnlyAddButton(onNewClick)
+              RouterState.Edit -> TaskEditView(selectedTask, onSaveClick)
+              RouterState.List -> TaskListWithAdd(items.values.toList(), onNewClick, onItemClick)
+            }
+          }`
         }
       }
     }
