@@ -1,5 +1,6 @@
 package com.kozaxinan.daily
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.Composable
@@ -92,10 +93,12 @@ internal class MainActivity : AppCompatActivity() {
               RouterState.Edit -> TaskEditView(selectedTask, onSaveClick)
               RouterState.List -> TaskListWithAdd(items.values.toList(), onNewClick, onItemClick)
             }
-          }`
+          }
         }
       }
     }
+
+    startActivity(Intent(this, DailyActivity::class.java))
   }
 }
 
